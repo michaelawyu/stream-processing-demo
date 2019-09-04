@@ -1,0 +1,20 @@
+events:
+  newPlay:
+    attributes:
+      type:
+        type: string
+        default: "com.example.newplay"
+        enum:
+          - "com.example.newplay"
+      source:
+        type: string
+        default: "local"
+        enum:
+          - "local"
+      data:
+        type: object
+        properties:
+          videoId:
+            type: string
+metadata:
+  packageName: example_events
