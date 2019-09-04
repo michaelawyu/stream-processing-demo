@@ -1,4 +1,4 @@
 .gradle
 .vscode
-build/
-bin/
+build
+bin
