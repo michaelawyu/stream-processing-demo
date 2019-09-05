@@ -34,6 +34,7 @@ public class StreamingJob {
 		DataStream<PubSubEvent> dataStream = env.addSource(pubSubSource);
 
 		DataStream<Tuple2<String, Long>> plays = dataStream
+			.keyBy(PubSubEvent.getKeySelector())
 			.filter(new CustomFilter())
 			.flatMap(new FlatMapFunction<PubSubEvent, Tuple2<String, Long>>() {
 				static final long serialVersionUID = 1L;
