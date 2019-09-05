@@ -15,10 +15,15 @@ import org.apache.flink.streaming.api.windowing.time.Time;
 public class StreamingJob {
 
 	public static void main(String[] args) throws Exception {
-		// set up the streaming execution environment
+		// Set up the streaming execution environment
 		final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 		env.enableCheckpointing(4000);
 
+		// Set up a Cloud Pub/Sub topic as input
+		
+		// deserializer controls how Apache Flink deserializes the message
+		// returns from Cloud Pub/Sub (a byte string) to a PubSubEvent
+		// (custom Java class). See PubSubEvent.java for definition.
 		PlayCountEventDeserializationSchema deserializer = new PlayCountEventDeserializationSchema();
 
 		Map<String, String> envVars = System.getenv();
@@ -33,7 +38,11 @@ public class StreamingJob {
 		
 		DataStream<PubSubEvent> dataStream = env.addSource(pubSubSource);
 
+		// Start processing data
 		DataStream<Tuple2<String, Long>> plays = dataStream
+			// Partitions the incoming events in the stream using its specified
+			// key (videoId). getKeySelector() here tells Flink which attribute
+			// to use as the key.
 			.keyBy(PubSubEvent.getKeySelector())
 			.filter(new CustomFilter())
 			.flatMap(new FlatMapFunction<PubSubEvent, Tuple2<String, Long>>() {

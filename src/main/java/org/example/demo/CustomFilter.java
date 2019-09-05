@@ -23,6 +23,7 @@ public class CustomFilter extends RichFilterFunction<PubSubEvent> implements Lis
         this.cacheExpirationTime = cacheExpirationTime;
     }
 
+    // Set up the cache.
     public void setUpCache() {
         this.cache = CacheBuilder
         .newBuilder()
@@ -35,11 +36,16 @@ public class CustomFilter extends RichFilterFunction<PubSubEvent> implements Lis
         });
     }
 
+    // Call setUpCache when the filter initiates.
     @Override
     public void open(Configuration config) throws Exception {
         setUpCache();
     }
 
+    // Specify how this custom filter works. The system queries the cache
+    // with the ID of the incoming event every time it arrives; if it hits,
+    // the filter returns false; otherwise it adds the ID to the cache and
+    // returns true.
     @Override
     public boolean filter(PubSubEvent event) throws Exception {
         String eventId = event.eventId;
@@ -53,11 +59,17 @@ public class CustomFilter extends RichFilterFunction<PubSubEvent> implements Lis
         }
     }
 
+    // snapshotState and restoreStore help restore the contents of the
+    // cache if any partition of Flink crashs.
+
+    // snapshotState checks in the contents of the cache at Flink checkpoints.
     @Override
     public List<HashSet<String>> snapshotState(long checkpointId, long timestamp) {
         return Collections.singletonList(new HashSet<String>(this.cache.asMap().keySet()));
     }
 
+    // If the system crashes, restoreState loads the contents checked in at
+    // the last checkpoint back to the cache.
     @Override
     public void restoreState(List<HashSet<String>> state) throws Exception {
         setUpCache();
